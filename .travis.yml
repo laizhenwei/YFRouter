@@ -1,0 +1,2 @@
+language: objective-c
+script: xcodebuild -workspace YFRouterDemo.xcworkspace -scheme YFRouterDemo -destination 'platform=iOS Simulator,name=iPhone 6' build

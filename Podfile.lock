@@ -1,0 +1,21 @@
+PODS:
+  - YFLog (0.1.0)
+
+DEPENDENCIES:
+  - YFLog (from `https://github.com/laichanwai/YFLog.git`)
+
+EXTERNAL SOURCES:
+  YFLog:
+    :git: https://github.com/laichanwai/YFLog.git
+
+CHECKOUT OPTIONS:
+  YFLog:
+    :commit: 38675c70cbf96bf5bf93844873f2fa5891857616
+    :git: https://github.com/laichanwai/YFLog.git
+
+SPEC CHECKSUMS:
+  YFLog: d5dd4717b96d317cc6a1f29aae5fc960f55e5130
+
+PODFILE CHECKSUM: f3513cad6d2bf6b9f0672234f88523dc61ff856a
+
+COCOAPODS: 1.1.1
