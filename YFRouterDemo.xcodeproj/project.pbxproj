@@ -206,8 +206,7 @@
 				TargetAttributes = {
 					C658CCA41E02510500511B6E = {
 						CreatedOnToolsVersion = 8.1;
-						DevelopmentTeam = CLMC3TB7QD;
-						ProvisioningStyle = Automatic;
+						ProvisioningStyle = Manual;
 					};
 					C658CCBD1E02510500511B6E = {
 						CreatedOnToolsVersion = 8.1;
@@ -450,7 +449,7 @@
 			baseConfigurationReference = 766B0BE761462F6A77324C51 /* Pods-YFRouterDemo.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = CLMC3TB7QD;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = YFRouterDemo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -464,7 +463,7 @@
 			baseConfigurationReference = DD963467D095FD3D3873254E /* Pods-YFRouterDemo.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = CLMC3TB7QD;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = YFRouterDemo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -518,6 +517,7 @@
 				C658CCC91E02510500511B6E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		C658CCCA1E02510500511B6E /* Build configuration list for PBXNativeTarget "YFRouterDemoTests" */ = {
 			isa = XCConfigurationList;
@@ -526,6 +526,7 @@
 				C658CCCC1E02510500511B6E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
