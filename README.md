@@ -94,6 +94,34 @@ UIAlertController *alert = [YFRouter objectForRoute:@"YF://alert?title=Hello&mes
 
 ### YFRoutr 机制
 
+#### URL 匹配机制
+
+##### Scheme
+
+YFRouter 有一个默认的 Scheme `YFRouterDefaultScheme`，住注册 URL 的时候如果 URL 不含有 Scheme，则会使用 YFRouter 默认的 Scheme。
+
+```
+extern NSString * const YFRouterDefaultScheme;
+
+[YFRouter registerURL:@"my:///feed/detail" handler:handler]; // my:///feed/detail 
+
+[YFRouter registerURL:@"/feed/detail" handler:handler]; // YFRouterScheme:///feed/detail 
+
+```
+
+##### URLPattern
+
+标准的 Scheme 定义是 `scheme://`，URI 是 `/path`，完整的 URL 是 `scheme:///path`
+
+在 YFRouter 中 URLPattern 是否以 `/` 开始都是可以的，即:
+
+```
+// 在 YFRouter 中他们是代表同一个 URL
+scheme://feed/detail
+scheme://feed/deatil/
+scheme:///feed/detail
+```
+
 #### shouldFallbackToLastHandler
 
 YFRouter 中有一个选项 `shouldFallbackToLastHandler`，默认是 NO
