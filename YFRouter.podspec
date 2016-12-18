@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'YFRouter'
-  s.version          = '0.1.0'
+  s.version          = '0.1.1'
   s.summary          = 'A iOS Router Component'
   s.description      = <<-DESC
                        YFRouter is a part of YFKit，

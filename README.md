@@ -159,7 +159,7 @@ YF:///feed/detail
 ## Installation
 
 ```ruby
-pod "YFRouter" :git => 'https://github.com/laichanwai/YFRouter.git'
+pod "YFRouter"
 ```
 
 ps. 建议在项目中利用默认 Scheme 和 `Target Action` 的方式来处理 URL
