@@ -40,6 +40,7 @@
         }
         _pathComponents = pathComponent.copy;
         _path = components.percentEncodedPath;
+        if ([[_path substringToIndex:1] isEqualToString:@"/"]) _path = [_path substringFromIndex:1];
         
         // Parameters
         NSMutableDictionary *newParams = @{}.mutableCopy;
