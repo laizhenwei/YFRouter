@@ -10,6 +10,7 @@
 
 extern NSString * const YFRouterDefaultScheme;
 extern NSString * const YFRouterSchemeKey;
+extern NSString * const YFRouterPathKey;
 extern NSString * const YFRouterURLKey;
 extern NSString * const YFRouterDomain;
 

@@ -13,6 +13,7 @@
 
 @property (nonatomic, copy, readonly) NSString *urlString;
 @property (nonatomic, copy, readonly) NSString *scheme;
+@property (nonatomic, copy, readonly) NSString *path;
 @property (nonatomic, copy, readonly) NSArray *pathComponents;
 @property (nonatomic, copy, readonly) NSDictionary *params;
 

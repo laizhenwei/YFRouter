@@ -24,16 +24,18 @@ YFRouter 是一个高效、轻量级的路由系统，帮你处理一系列的 U
 -------------------
 {
     YFSchemeKey = YF;
+    YFPathKey = @"feed/detail";
     YFURLKey = "YF:///feed/detail?id=001";
     id = 001;
 }
 -------------------
 ```
 
-`params` 自带 两个 Key
+`params` 自带 三个 Key
 
 ```
 extern NSString * const YFRouterSchemeKey;
+extern NSString * const YFRouterPathKey;
 extern NSString * const YFRouterURLKey;
 ```
 
@@ -49,6 +51,7 @@ extern NSString * const YFRouterURLKey;
 -------------------
 {
     YFSchemeKey = YF;
+    YFPathKey = @"feed/detail";
     YFURLKey = "YF:///feed/detail?id=001";
     id = 001;
 }
@@ -67,6 +70,7 @@ extern NSString * const YFRouterURLKey;
 -------------------
 {
     YFSchemeKey = YF;
+    YFPathKey = @"feed/detail";
     YFURLKey = "YF:///feed/detail?id=001";
     id = 001;
     city = shanghai;
@@ -100,7 +104,7 @@ UIAlertController *alert = [YFRouter objectForRoute:@"YF://alert?title=Hello&mes
 
 YFRouter 有一个默认的 Scheme `YFRouterDefaultScheme`，住注册 URL 的时候如果 URL 不含有 Scheme，则会使用 YFRouter 默认的 Scheme。
 
-```
+```objc
 extern NSString * const YFRouterDefaultScheme;
 
 [YFRouter registerURL:@"my:///feed/detail" handler:handler]; // my:///feed/detail 
@@ -126,7 +130,7 @@ scheme:///feed/detail
 
 YFRouter 中有一个选项 `shouldFallbackToLastHandler`，默认是 NO
 
-```
+```objc
 + (void)shouldFallbackToLastHandler:(BOOL)shouldFallback;
 ```
 
@@ -148,7 +152,7 @@ YF:///feed/detail
 
 使用这个方法注册一个 `UcaughtHandler`，所有未匹配到的 URL 都会进入这个方法。
 
-```
+```objc
 + (void)registerUncaughtHandler:(YFRouterHandlerBlock)handler;
 ```
 
@@ -160,7 +164,7 @@ pod "YFRouter" :git => 'https://github.com/laichanwai/YFRouter.git'
 
 ps. 建议在项目中利用默认 Scheme 和 `Target Action` 的方式来处理 URL
 
-```
+```objc
 [YFRouter registerURL:@"/:target/:action" handler:^(NSDictionary *params) {
     id target = params[@"target"];
     id action = params[@"action"];

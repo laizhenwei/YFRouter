@@ -24,6 +24,7 @@ return [worker __op__:routerUrl];
 
 NSString * const YFRouterDefaultScheme  = @"YFRouterScheme";
 NSString * const YFRouterSchemeKey      = @"YFSchemeKey";
+NSString * const YFRouterPathKey        = @"YFPathKey";
 NSString * const YFRouterURLKey         = @"YFURLKey";
 NSString * const YFRouterDomain         = @"YFRouterDomain";
 

@@ -39,6 +39,7 @@
             [pathComponent addObject:path];
         }
         _pathComponents = pathComponent.copy;
+        _path = components.percentEncodedPath;
         
         // Parameters
         NSMutableDictionary *newParams = @{}.mutableCopy;
@@ -113,6 +114,7 @@ static BOOL shouldFallbackToLastHandler;
         NSMutableDictionary *newParams = @{}.mutableCopy;
         [newParams addEntriesFromDictionary:@{
                                               YFRouterSchemeKey : self.scheme,
+                                              YFRouterPathKey   : url.path,
                                               YFRouterURLKey    : url.urlString
                                               }];
         if (handler) {
@@ -134,6 +136,7 @@ static BOOL shouldFallbackToLastHandler;
             NSMutableDictionary *newParams = @{}.mutableCopy;
             [newParams addEntriesFromDictionary:@{
                                                   YFRouterSchemeKey : self.scheme,
+                                                  YFRouterPathKey   : url.path,
                                                   YFRouterURLKey    : url.urlString
                                                   }];
             [newParams addEntriesFromDictionary:params];
