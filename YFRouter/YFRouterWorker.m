@@ -8,14 +8,6 @@
 
 #import "YFRouterWorker.h"
 
-typedef enum : NSUInteger {
-    YFRouterLogNone     = 0,
-    YFRouterLogVerbose  = 1,
-    YFRouterLogWarning  = 1 << 1,
-    YFRouterLogError    = 1 << 2,
-    YFRouterLogAll      = YFRouterLogVerbose | YFRouterLogWarning | YFRouterLogError,
-} YFRouterLog;
-
 @implementation YFURL
 
 + (instancetype)urlWithString:(NSString *)urlString params:(NSDictionary *)params {
@@ -47,6 +39,7 @@ typedef enum : NSUInteger {
             [pathComponent addObject:path];
         }
         _pathComponents = pathComponent.copy;
+        _path = components.percentEncodedPath;
         
         // Parameters
         NSMutableDictionary *newParams = @{}.mutableCopy;
@@ -73,10 +66,15 @@ static BOOL shouldFallbackToLastHandler;
 
 @implementation YFRouterWorker
 
++ (void)load {
+    [YFLogger addLoggerDomain:YFRouterDomain];
+}
+
 #pragma mark - Public
 - (instancetype)initWithScheme:(NSString *)scheme {
     if (self = [super init]) {
         self.scheme = scheme;
+        YFFlagInfo(YES, YFRouterDomain, @"Create Router For Scheme: %@", scheme);
     }
     return self;
 }
@@ -86,19 +84,21 @@ static BOOL shouldFallbackToLastHandler;
 }
 
 + (void)registerUncaughtHandler:(YFRouterHandlerBlock)handler {
+    if (!handler) {
+        uncaughtHandler = nil;
+        return;
+    }
     uncaughtHandler = [handler copy];
 }
 
 - (void)add:(YFURL *)url handler:(id)handler {
     [self routersForURL:url][YFRouterWorkerBlockKey] = handler;
-    [self log:YFRouterLogVerbose message:@"%@ register handler URL : %@ %@", self.scheme, url.urlString, self.routers];
 }
 
 - (void)remove:(YFURL *)url {
     NSMutableArray *pathComponent = [url.pathComponents mutableCopy];
     [pathComponent addObject:YFRouterWorkerBlockKey];
     [self unregisterSubRoutersWithPathComponents:pathComponent];
-    [self log:YFRouterLogVerbose message:@"%@ unregister URL : %@ %@", self.scheme, url.urlString, self.routers];
 }
 
 - (BOOL)canOpen:(YFURL *)url {
@@ -114,18 +114,17 @@ static BOOL shouldFallbackToLastHandler;
         NSMutableDictionary *newParams = @{}.mutableCopy;
         [newParams addEntriesFromDictionary:@{
                                               YFRouterSchemeKey : self.scheme,
+                                              YFRouterPathKey   : url.path,
                                               YFRouterURLKey    : url.urlString
                                               }];
         if (handler) {
             [newParams addEntriesFromDictionary:params];
             [newParams addEntriesFromDictionary:url.params];
-            [self log:YFRouterLogVerbose message:@"handler found %p", handler];
             handler(newParams);
+        } else if (uncaughtHandler) {
+            uncaughtHandler(newParams);
         } else {
-            [self log:YFRouterLogVerbose message:@"handler not found %p", uncaughtHandler];
-            if (uncaughtHandler) {
-                uncaughtHandler(newParams);
-            }
+            YFFlagError(YES, YFRouterDomain, @"Handler For URL: %@ Not Found", url.urlString);
         }
     }];
 }
@@ -137,12 +136,14 @@ static BOOL shouldFallbackToLastHandler;
             NSMutableDictionary *newParams = @{}.mutableCopy;
             [newParams addEntriesFromDictionary:@{
                                                   YFRouterSchemeKey : self.scheme,
+                                                  YFRouterPathKey   : url.path,
                                                   YFRouterURLKey    : url.urlString
                                                   }];
             [newParams addEntriesFromDictionary:params];
             [newParams addEntriesFromDictionary:url.params];
-            [self log:YFRouterLogVerbose message:@"objectHandler found %p", handler];
             object = handler(newParams);
+        } else {
+            YFFlagError(YES, YFRouterDomain, @"Object Handler Not Found");
         }
     }];
     return object;
@@ -186,7 +187,7 @@ return; }
         if (fuzzyKeys.count <= 0) YFHandleNotFound;
         // 同一节点出现多个匹配
         if (fuzzyKeys.count > 1) { // 报警告
-            [self log:YFRouterLogWarning message:@"出现多个 \":\" 节点 %@", routers];
+            YFFlagWarning(YES, YFRouterDomain, @"There Are More Than One FuzzyKeys %@", routers.allKeys);
         }
         // 默认匹配（随机）
         NSString *key = fuzzyKeys[0];
@@ -215,27 +216,6 @@ return; }
     }
     if (routers.count < 1) {
         [self unregisterSubRoutersWithPathComponents:pathComponents];
-    }
-}
-
-- (void)log:(YFRouterLog)level message:(NSString *)format, ... {
-    NSMutableString *message = [NSMutableString string];
-    va_list args;
-    va_start(args, format);
-    [message appendString:[[NSString alloc] initWithFormat:format arguments:args]];
-    va_end(args);
-    
-    switch (level) {
-        case YFRouterLogWarning:
-            NSLog(@"%@", [@"[WARNING] " stringByAppendingString:message]);
-            break;
-        case YFRouterLogError:
-            NSLog(@"%@", [@"[ ERROR ] " stringByAppendingString:message]);
-            break;
-        case YFRouterLogVerbose:
-            NSLog(@"%@", [@"[VERBOSE] " stringByAppendingString:message]);
-        default:
-            break;
     }
 }
 

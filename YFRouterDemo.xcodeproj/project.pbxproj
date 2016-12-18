@@ -142,8 +142,7 @@
 				C658CCD01E02514900511B6E /* YFRouterWorker.h */,
 				C658CCD11E02514900511B6E /* YFRouterWorker.m */,
 			);
-			name = YFRouter;
-			path = YFRouterDemo/YFRouter;
+			path = YFRouter;
 			sourceTree = "<group>";
 		};
 		C9382D5A2269FE874A32F550 /* Frameworks */ = {

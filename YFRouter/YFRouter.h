@@ -10,7 +10,9 @@
 
 extern NSString * const YFRouterDefaultScheme;
 extern NSString * const YFRouterSchemeKey;
+extern NSString * const YFRouterPathKey;
 extern NSString * const YFRouterURLKey;
+extern NSString * const YFRouterDomain;
 
 typedef void(^YFRouterHandlerBlock)(NSDictionary *params);
 typedef id(^YFRouterObjectHandlerBlock)(NSDictionary *params);
@@ -18,11 +20,21 @@ typedef id(^YFRouterObjectHandlerBlock)(NSDictionary *params);
 @interface YFRouter : NSObject
 
 /**
+ 控制台输出控制
+ 建议不要关闭， YFRouter 只会输出错误和警告信息
+ 
+ @param enable LogEnable
+ */
++ (void)setLogEnable:(BOOL)enable;
+
+/**
  在找不到当前节点的 handler 时候是否允许上一个节点的 Handler 接受处理
  eg.
  register: yf:///user --> myHandler
  route: yf:///user/follow
  如果允许，则会执行 myHandler，否则将 Route 失败，进入 UncaughtHandler
+ 
+ 默认为 NO
 
  @param shouldFallback 允许回滚到上一节点
  */

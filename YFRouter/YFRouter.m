@@ -20,21 +20,27 @@ YFRouterWorker *worker = [self routerForScheme:routerUrl.scheme ?: YFRouterDefau
 return [worker __op__:routerUrl];
 
 #define YFWorlerHandlerOperation YFWorkerInitURL(nil) \
-NSParameterAssert(handler != nil); \
-NSParameterAssert(url.length > 0); \
-return [worker add:routerUrl handler:handler];
+[worker add:routerUrl handler:handler];
 
 NSString * const YFRouterDefaultScheme  = @"YFRouterScheme";
-NSString * const YFRouterSchemeKey      = @"YFScheme";
-NSString * const YFRouterURLKey         = @"YFURL";
+NSString * const YFRouterSchemeKey      = @"YFSchemeKey";
+NSString * const YFRouterPathKey        = @"YFPathKey";
+NSString * const YFRouterURLKey         = @"YFURLKey";
+NSString * const YFRouterDomain         = @"YFRouterDomain";
 
 static NSMutableDictionary *_routerWorkers;
 
 @implementation YFRouter
++ (void)load {
+    [self setLogEnable:YES];
+}
 
 #pragma mark - Life Circle
 + (id)routerForScheme:(NSString *)scheme {
-    NSParameterAssert(scheme.length > 0);
+    if (scheme.length <= 0) {
+        YFFlagError(YES, YFRouterDomain, @"Scheme is nil");
+        return nil;
+    }
     
     if (!_routerWorkers) {
         _routerWorkers = @{}.mutableCopy;
@@ -49,45 +55,70 @@ static NSMutableDictionary *_routerWorkers;
 }
 
 + (void)unregisterScheme:(NSString *)scheme {
-    if (_routerWorkers[scheme]) {
-        [_routerWorkers removeObjectForKey:scheme];
+    if (!_routerWorkers[scheme]) {
+        YFFlagError(YES, YFRouterDomain, @"Scheme: %@ Not Found", scheme);
     }
+    [_routerWorkers removeObjectForKey:scheme];
 }
 
 #pragma mark - Public
++ (void)setLogEnable:(BOOL)enable {
+    if (enable) {
+        [YFLogger addLoggerDomain:YFRouterDomain];
+    } else {
+        [YFLogger removeLoggerDomain:YFRouterDomain];
+    }
+}
+
 + (void)shouldFallbackToLastHandler:(BOOL)shouldFallback {
     [YFRouterWorker shouldFallbackToLastHandler:shouldFallback];
 }
 
 + (void)registerUncaughtHandler:(YFRouterHandlerBlock)handler {
-    NSParameterAssert(handler != nil);
     [YFRouterWorker registerUncaughtHandler:handler];
 }
 
 + (void)registerURL:(NSString *)url handler:(YFRouterHandlerBlock)handler {
+    NSParameterAssert(handler != nil);
+    NSParameterAssert(url.length > 0);
     YFWorlerHandlerOperation
 }
 
-+ (void)registerURL:(NSString *)url objectHandler:(YFRouterObjectHandlerBlock)handler {        YFWorlerHandlerOperation
++ (void)registerURL:(NSString *)url objectHandler:(YFRouterObjectHandlerBlock)handler {
+    NSParameterAssert(handler != nil);
+    NSParameterAssert(url.length > 0);
+    YFWorlerHandlerOperation
 }
 
 + (void)unregisterURL:(NSString *)url {
-    NSParameterAssert(url != nil);
+    if (url.length <= 0) {
+        YFFlagError(YES, YFRouterDomain, @"URL is nil");
+        return;
+    }
     YFWorlerOperation(remove, nil)
 }
 
 + (BOOL)canRoute:(NSString *)url {
-    if (url.length <= 0) return NO;
+    if (url.length <= 0) {
+        YFFlagError(YES, YFRouterDomain, @"URL is nil");
+        return NO;
+    }
     YFWorkerReturnOperation(canOpen, nil)
 }
 
 + (void)route:(NSString *)url params:(NSDictionary *)params {
-    if (url.length <= 0) return;
+    if (url.length <= 0) {
+        YFFlagError(YES, YFRouterDomain, @"URL is nil");
+        return;
+    }
     YFWorlerOperation(open, params)
 }
 
 + (id)objectForRoute:(NSString *)url params:(NSDictionary *)params {
-    if (url.length <= 0) return nil;
+    if (url.length <= 0) {
+        YFFlagError(YES, YFRouterDomain, @"URL is nil");
+        return nil;
+    }
     YFWorkerReturnOperation(object, params)
 }
 
