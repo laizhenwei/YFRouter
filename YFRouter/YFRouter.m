@@ -13,20 +13,29 @@
 YFURL *routerUrl = [YFURL urlWithString:url params:__ap__]; \
 YFRouterWorker *worker = [self routerForScheme:routerUrl.scheme ?: YFRouterDefaultScheme];
 
+#define YFWorkerURLError(__return__) \
+if (url.length <= 0) { \
+YFFlagError(YES, YFRouterDomain, @"URL is nil"); \
+return __return__; }
+
 #define YFWorlerOperation(__op__, __ap__) YFWorkerInitURL(__ap__) \
+YFWorkerURLError() \
 [worker __op__:routerUrl];
 
-#define YFWorkerReturnOperation(__op__, __ap__) YFWorkerInitURL(__ap__) \
+#define YFWorkerReturnOperation(__op__, __ap__, __return__) YFWorkerInitURL(__ap__) \
+YFWorkerURLError(__return__) \
 return [worker __op__:routerUrl];
 
-#define YFWorlerHandlerOperation YFWorkerInitURL(nil) \
-[worker add:routerUrl handler:handler];
+#define YFWorlerObjectOperation YFWorkerInitURL(nil) \
+NSParameterAssert(object != nil); \
+NSParameterAssert(url.length > 0); \
+[worker add:routerUrl object:object];
 
 NSString * const YFRouterDefaultScheme  = @"YFRouterScheme";
 NSString * const YFRouterSchemeKey      = @"YFSchemeKey";
 NSString * const YFRouterPathKey        = @"YFPathKey";
 NSString * const YFRouterURLKey         = @"YFURLKey";
-NSString * const YFRouterDomain         = @"YFRouterDomain";
+
 
 static NSMutableDictionary *_routerWorkers;
 
@@ -46,6 +55,7 @@ static NSMutableDictionary *_routerWorkers;
         _routerWorkers = @{}.mutableCopy;
     }
     
+    scheme = [scheme lowercaseString];
     YFRouter *router = _routerWorkers[scheme];
     if (!router) {
         router = [[YFRouterWorker alloc] initWithScheme:scheme];
@@ -55,6 +65,7 @@ static NSMutableDictionary *_routerWorkers;
 }
 
 + (void)unregisterScheme:(NSString *)scheme {
+    scheme = [scheme lowercaseString];
     if (!_routerWorkers[scheme]) {
         YFFlagError(YES, YFRouterDomain, @"Scheme: %@ Not Found", scheme);
     }
@@ -64,9 +75,9 @@ static NSMutableDictionary *_routerWorkers;
 #pragma mark - Public
 + (void)setLogEnable:(BOOL)enable {
     if (enable) {
-        [YFLogger addLoggerDomain:YFRouterDomain];
+        [YFLogger addLoggerWithDomain:YFRouterDomain];
     } else {
-        [YFLogger removeLoggerDomain:YFRouterDomain];
+        [YFLogger removeLoggerWithDomain:YFRouterDomain];
     }
 }
 
@@ -78,48 +89,32 @@ static NSMutableDictionary *_routerWorkers;
     [YFRouterWorker registerUncaughtHandler:handler];
 }
 
-+ (void)registerURL:(NSString *)url handler:(YFRouterHandlerBlock)handler {
-    NSParameterAssert(handler != nil);
-    NSParameterAssert(url.length > 0);
-    YFWorlerHandlerOperation
++ (void)registerURL:(NSString *)url handler:(YFRouterHandlerBlock)object {
+    YFWorlerObjectOperation
 }
 
-+ (void)registerURL:(NSString *)url objectHandler:(YFRouterObjectHandlerBlock)handler {
-    NSParameterAssert(handler != nil);
-    NSParameterAssert(url.length > 0);
-    YFWorlerHandlerOperation
++ (void)registerURL:(NSString *)url objectHandler:(YFRouterObjectHandlerBlock)object {
+    YFWorlerObjectOperation
+}
+
++ (void)registerURL:(NSString *)url object:(id)object; {
+    YFWorlerObjectOperation
 }
 
 + (void)unregisterURL:(NSString *)url {
-    if (url.length <= 0) {
-        YFFlagError(YES, YFRouterDomain, @"URL is nil");
-        return;
-    }
     YFWorlerOperation(remove, nil)
 }
 
 + (BOOL)canRoute:(NSString *)url {
-    if (url.length <= 0) {
-        YFFlagError(YES, YFRouterDomain, @"URL is nil");
-        return NO;
-    }
-    YFWorkerReturnOperation(canOpen, nil)
+    YFWorkerReturnOperation(canOpen, nil, NO)
 }
 
 + (void)route:(NSString *)url params:(NSDictionary *)params {
-    if (url.length <= 0) {
-        YFFlagError(YES, YFRouterDomain, @"URL is nil");
-        return;
-    }
     YFWorlerOperation(open, params)
 }
 
 + (id)objectForRoute:(NSString *)url params:(NSDictionary *)params {
-    if (url.length <= 0) {
-        YFFlagError(YES, YFRouterDomain, @"URL is nil");
-        return nil;
-    }
-    YFWorkerReturnOperation(object, params)
+    YFWorkerReturnOperation(object, params, nil)
 }
 
 + (BOOL)canOpenURL:(NSURL *)url {
@@ -134,6 +129,7 @@ static NSMutableDictionary *_routerWorkers;
 @end
 
 #undef YFWorkerInitURL
+#undef YFWorkerURLError
 #undef YFWorlerOperation
 #undef YFWorkerReturnOperation
 #undef YFWorlerHandlerOperation

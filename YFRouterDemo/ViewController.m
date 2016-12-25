@@ -10,6 +10,8 @@
 #import "YFRouter.h"
 #import <YFLog.h>
 
+static const char *BlockSig(id blockObj);
+
 @interface ViewController ()
 @property (weak, nonatomic) IBOutlet UITextField *registerURL;
 @property (weak, nonatomic) IBOutlet UITextField *registerObject;
@@ -25,6 +27,12 @@
     [super viewDidLoad];
     
     YFLogTrace()
+    
+    
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"这是通过 URL 直接绑定的 Alert" message:@"通过 + (void)registerURL:(NSString *)url object:(id)object; 这个方法来绑定 \n 获取的方法跟 Object Handler 的获取方法一样 + (id)objectForRoute:(NSString *)url params:(NSDictionary *)params;" preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
+
+    [YFRouter registerURL:@"yf://alertObject" object:alert];
 }
 - (IBAction)canRoute:(id)sender {
     BOOL flag = [YFRouter canRoute:self.routeURL.text];
@@ -84,5 +92,9 @@
     }
 }
 
+- (IBAction)alertObject:(id)sender {
+    UIAlertController *alert = [YFRouter objectForRoute:@"yf://alertObject" params:nil];
+    [self presentViewController:alert animated:YES completion:nil];
+}
 
 @end

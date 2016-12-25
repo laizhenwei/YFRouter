@@ -7,6 +7,7 @@
 //
 
 #import "YFRouterWorker.h"
+#import <objc/runtime.h>
 
 @implementation YFURL
 
@@ -26,7 +27,7 @@
         NSRange range = [urlString rangeOfString:@"://"];
         if (range.length > 0) {
             NSString *scheme = [urlString substringToIndex:range.location];
-            _scheme = scheme;
+            _scheme = [scheme lowercaseString];
             
             urlString = [urlString substringFromIndex:range.location + 3];
         }
@@ -57,7 +58,7 @@
 
 @end
 
-static NSString * const YFRouterWorkerBlockKey = @"YFRouterWorkerBlockKey";
+static NSString * const YFRouterWorkerObjectKey = @"YFRouterWorkerObjectKey";
 static YFRouterHandlerBlock uncaughtHandler;
 static BOOL shouldFallbackToLastHandler;
 
@@ -66,10 +67,6 @@ static BOOL shouldFallbackToLastHandler;
 @end
 
 @implementation YFRouterWorker
-
-+ (void)load {
-    [YFLogger addLoggerDomain:YFRouterDomain];
-}
 
 #pragma mark - Public
 - (instancetype)initWithScheme:(NSString *)scheme {
@@ -92,13 +89,13 @@ static BOOL shouldFallbackToLastHandler;
     uncaughtHandler = [handler copy];
 }
 
-- (void)add:(YFURL *)url handler:(id)handler {
-    [self routersForURL:url][YFRouterWorkerBlockKey] = handler;
+- (void)add:(YFURL *)url object:(id)object {
+    [self routersForURL:url][YFRouterWorkerObjectKey] = object;
 }
 
 - (void)remove:(YFURL *)url {
     NSMutableArray *pathComponent = [url.pathComponents mutableCopy];
-    [pathComponent addObject:YFRouterWorkerBlockKey];
+    [pathComponent addObject:YFRouterWorkerObjectKey];
     [self unregisterSubRoutersWithPathComponents:pathComponent];
 }
 
@@ -112,6 +109,7 @@ static BOOL shouldFallbackToLastHandler;
 
 - (void)open:(YFURL *)url {
     [self searchRouterURL:url result:^(YFRouterHandlerBlock handler, NSDictionary *params) {
+        if (object_isClass(handler)) return;
         NSMutableDictionary *newParams = @{}.mutableCopy;
         [newParams addEntriesFromDictionary:@{
                                               YFRouterSchemeKey : self.scheme,
@@ -132,8 +130,13 @@ static BOOL shouldFallbackToLastHandler;
 
 - (id)object:(YFURL *)url {
     __block id object;
-    [self searchRouterURL:url result:^(YFRouterObjectHandlerBlock handler, NSDictionary *params) {
+    [self searchRouterURL:url result:^(id handler, NSDictionary *params) {
         if (handler) {
+            static YFRouterObjectHandlerBlock block = ^id(NSDictionary *params) {return nil;};
+            if (![handler isKindOfClass:NSClassFromString(@"NSBlock")] || (BlockSigal(block) != BlockSigal(handler))) {
+                object = handler;
+                return;
+            }
             NSMutableDictionary *newParams = @{}.mutableCopy;
             [newParams addEntriesFromDictionary:@{
                                                   YFRouterSchemeKey : self.scheme,
@@ -142,7 +145,7 @@ static BOOL shouldFallbackToLastHandler;
                                                   }];
             [newParams addEntriesFromDictionary:params];
             [newParams addEntriesFromDictionary:url.params];
-            object = handler(newParams);
+            object = ((YFRouterObjectHandlerBlock)handler)(newParams);
         } else {
             YFFlagError(YES, YFRouterDomain, @"Object Handler Not Found");
         }
@@ -168,11 +171,11 @@ static BOOL shouldFallbackToLastHandler;
     NSMutableDictionary *params = @{}.mutableCopy;
     
     // 是否允许上一个路径节点的 Handler 处理 URL
-#define YFHandleNotFound \
-{ if (shouldFallbackToLastHandler) break; \
-if (result) result(nil, params); \
-result = nil; \
-return; }
+    #define YFHandleNotFound \
+    { if (shouldFallbackToLastHandler) break; \
+    if (result) result(nil, params); \
+    result = nil; \
+    return; }
     
     for (NSString *path in url.pathComponents) {
         // 找不到该节点
@@ -195,10 +198,10 @@ return; }
         params[[key substringFromIndex:1]] = path;
         routers = routers[key];
     }
-    if (result) result(routers[YFRouterWorkerBlockKey], params);
+    if (result) result(routers[YFRouterWorkerObjectKey], params);
     result = nil;
     
-#undef YFHandleNotFound
+    #undef YFHandleNotFound
 }
 
 - (void)unregisterSubRoutersWithPathComponents:(NSMutableArray *)pathComponents {
@@ -237,5 +240,34 @@ return; }
     return predicate;
 }
 
-@end
+#pragma mark - Helper
+struct BlockDescriptor {
+    unsigned long reserved;
+    unsigned long size;
+    void *rest[1];
+};
 
+struct Block {
+    void *isa;
+    int flags;
+    int reserved;
+    void *invoke;
+    struct BlockDescriptor *descriptor;
+};
+
+static const char *BlockSigal(id blockObj) {
+    struct Block *block = (__bridge void *)blockObj;
+    struct BlockDescriptor *descriptor = block->descriptor;
+    
+    int copyDisposeFlag = 1 << 25;
+    int signatureFlag = 1 << 30;
+    
+    assert(block->flags & signatureFlag);
+    
+    int index = 0;
+    if(block->flags & copyDisposeFlag) index += 2;
+    
+    return descriptor->rest[index];
+}
+
+@end

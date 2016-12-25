@@ -8,6 +8,10 @@ YFRouter 是一个高效、轻量级的路由系统，帮你处理一系列的 U
 
 强烈建议配合 [YFMediator](https://github.com/laichanwai/YFMediator) 使用！！
 
+## News
+
+- 2016.12.25 [增加 URL - Object 绑定](#object-router)
+
 ## Usage
 
 ![2016121734431Route.gif](http://7xlykq.com1.z0.glb.clouddn.com/2016121734431Route.gif)
@@ -82,18 +86,34 @@ extern NSString * const YFRouterURLKey;
 
 ![2016121717816object.gif](http://7xlykq.com1.z0.glb.clouddn.com/2016121717816object.gif)
 
+通过 `URL` 获取对象，有两种方式，一种是通过绑定一个 `Object Handler` 来获取 `Object`，另一种是直接将 `URL` 和 `Object` 绑定。
+
+- 绑定 Object Handler
+
 ```objc
 [YFRouter registerURL:@"YF:///alert" objectHandler:^id(NSDictionary *params) {
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:params[@"title"] message:params[@"message"] preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
     return alert;
 }];
+```
 
+- 绑定 Object
+
+```objc
+UIAlertController *alert = [UIAlertController alertControllerWithTitle:params[@"title"] message:params[@"message"] preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
+
+[YFRouter registerURL:@"YF://alert" object:alert];
+```
+
+- 获取 Object
+
+```objc
 // 这种写法也是可以的
 // [YFRouter objectForRoute:@"YF://alert" params:@{@"title" : @"Hello", @"message" : @"World"}];
 UIAlertController *alert = [YFRouter objectForRoute:@"YF://alert?title=Hello&message=World" params:nil];
 [self presentViewController:alert animated:YES completion:nil];
-
 ```
 
 ### YFRoutr 机制

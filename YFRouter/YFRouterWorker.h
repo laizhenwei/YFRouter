@@ -27,7 +27,7 @@
 
 - (instancetype)initWithScheme:(NSString *)scheme;
 
-- (void)add:(YFURL *)url handler:(id)handler;
+- (void)add:(YFURL *)url object:(id)object;
 
 - (void)remove:(YFURL *)url;
 

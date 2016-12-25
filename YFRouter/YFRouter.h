@@ -8,11 +8,12 @@
 
 #import <UIKit/UIKit.h>
 
+#define YFRouterDomain @"YFRouterDomain"
+
 extern NSString * const YFRouterDefaultScheme;
 extern NSString * const YFRouterSchemeKey;
 extern NSString * const YFRouterPathKey;
 extern NSString * const YFRouterURLKey;
-extern NSString * const YFRouterDomain;
 
 typedef void(^YFRouterHandlerBlock)(NSDictionary *params);
 typedef id(^YFRouterObjectHandlerBlock)(NSDictionary *params);
@@ -64,6 +65,17 @@ typedef id(^YFRouterObjectHandlerBlock)(NSDictionary *params);
  @param handler URL 绑定的 ObjectHandler
  */
 + (void)registerURL:(NSString *)url objectHandler:(YFRouterObjectHandlerBlock)handler;
+
+/**
+ 绑定 URL 和 对象
+ 使用 +objectForRoute:params: 获取
+ 
+ 注意: 如果 object 的类型是 id(^)(NSDictonry *)，那么获取的时候会直接执行该 block
+ 
+ @param url 注册的 URL
+ @param object URL 绑定的对象
+ */
++ (void)registerURL:(NSString *)url object:(id)object;
 
 /**
  取消注册 URL
@@ -124,3 +136,4 @@ typedef id(^YFRouterObjectHandlerBlock)(NSDictionary *params);
 + (void)openURL:(NSURL *)url params:(NSDictionary *)params;
 
 @end
+
