@@ -14,6 +14,8 @@ YFRouter 是一个高效、轻量级的路由系统，帮你处理一系列的 U
 
 ## Usage
 
+- Demo
+
 ![2016121734431Route.gif](http://7xlykq.com1.z0.glb.clouddn.com/2016121734431Route.gif)
 
 ### URL Router
@@ -84,11 +86,11 @@ extern NSString * const YFRouterURLKey;
 
 #### Object Router
 
-![2016121717816object.gif](http://7xlykq.com1.z0.glb.clouddn.com/2016121717816object.gif)
-
 通过 `URL` 获取对象，有两种方式，一种是通过绑定一个 `Object Handler` 来获取 `Object`，另一种是直接将 `URL` 和 `Object` 绑定。
 
-- 绑定 Object Handler
+![2016121717816object.gif](http://7xlykq.com1.z0.glb.clouddn.com/2016121717816object.gif)
+
+##### 绑定 Object Handler
 
 ```objc
 [YFRouter registerURL:@"YF:///alert" objectHandler:^id(NSDictionary *params) {
@@ -98,7 +100,7 @@ extern NSString * const YFRouterURLKey;
 }];
 ```
 
-- 绑定 Object
+##### 绑定 Object
 
 ```objc
 UIAlertController *alert = [UIAlertController alertControllerWithTitle:params[@"title"] message:params[@"message"] preferredStyle:UIAlertControllerStyleAlert];
@@ -107,7 +109,7 @@ UIAlertController *alert = [UIAlertController alertControllerWithTitle:params[@"
 [YFRouter registerURL:@"YF://alert" object:alert];
 ```
 
-- 获取 Object
+##### 获取 Object
 
 ```objc
 // 这种写法也是可以的
@@ -182,7 +184,9 @@ YF:///feed/detail
 pod "YFRouter"
 ```
 
-ps. 建议在项目中利用默认 Scheme 和 `Target Action` 的方式来处理 URL
+## Tips
+
+建议在项目中利用默认 `Scheme` 和 `Target Action` 的方式来处理`本地 URL`
 
 ```objc
 [YFRouter registerURL:@"/:target/:action" handler:^(NSDictionary *params) {
