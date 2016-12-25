@@ -1,4 +1,4 @@
 language: objective-c
 osx_image: xcode8.1
-before_script: pod install
+before_script: pod install & pod update
 script: xcodebuild -workspace YFRouterDemo.xcworkspace -scheme YFRouterDemo -destination 'platform=iOS Simulator,name=iPhone 6' build
