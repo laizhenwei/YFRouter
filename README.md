@@ -88,6 +88,8 @@ extern NSString * const YFRouterURLKey;
 
 通过 `URL` 获取对象，有两种方式，一种是通过绑定一个 `Object Handler` 来获取 `Object`，另一种是直接将 `URL` 和 `Object` 绑定。
 
+`+ objectForRoute:params:` 获取的是 `YFObject`，通过 `value` 属性获取绑定的 `Object`，通过 `params` 获取传递的参数。
+
 ![2016121717816object.gif](http://7xlykq.com1.z0.glb.clouddn.com/2016121717816object.gif)
 
 ##### 绑定 Object Handler
@@ -114,7 +116,7 @@ UIAlertController *alert = [UIAlertController alertControllerWithTitle:params[@"
 ```objc
 // 这种写法也是可以的
 // [YFRouter objectForRoute:@"YF://alert" params:@{@"title" : @"Hello", @"message" : @"World"}];
-UIAlertController *alert = [YFRouter objectForRoute:@"YF://alert?title=Hello&message=World" params:nil];
+UIAlertController *alert = [YFRouter objectForRoute:@"YF://alert?title=Hello&message=World" params:nil].value;
 [self presentViewController:alert animated:YES completion:nil];
 ```
 

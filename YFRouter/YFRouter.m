@@ -8,7 +8,6 @@
 
 #import "YFRouter.h"
 #import "YFRouterWorker.h"
-#import <YFLog.h>
 
 #define YFWorkerInitURL(__ap__) \
 YFURL *routerUrl = [YFURL urlWithString:url params:__ap__]; \
