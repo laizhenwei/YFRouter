@@ -18,6 +18,7 @@ extern NSString * const YFRouterURLKey;
 typedef void(^YFRouterHandlerBlock)(NSDictionary *params);
 typedef id(^YFRouterObjectHandlerBlock)(NSDictionary *params);
 
+@class YFObject;
 @interface YFRouter : NSObject
 
 /**
@@ -110,13 +111,13 @@ typedef id(^YFRouterObjectHandlerBlock)(NSDictionary *params);
 + (void)route:(NSString *)url params:(NSDictionary *)params;
 
 /**
- 从 URL 中得到一个对象
+ 从 URL 中得到一个 YFObject
 
  @param url 需要处理的 URL
  @param params 传入的参数
- @return 返回的对象
+ @return 返回的 YFObject 对象
  */
-+ (id)objectForRoute:(NSString *)url params:(NSDictionary *)params;
++ (YFObject *)objectForRoute:(NSString *)url params:(NSDictionary *)params;
 
 /**
  封装 NSURL，操作如 +(BOOL)canRoute:(NSString *)url
@@ -137,3 +138,16 @@ typedef id(^YFRouterObjectHandlerBlock)(NSDictionary *params);
 
 @end
 
+@interface YFObject : NSObject
+
+/**
+ 与 URL 绑定的 object
+ */
+@property (nonatomic, strong) id value;
+
+/**
+ 参数
+ */
+@property (nonatomic, strong) NSDictionary *params;
+
+@end

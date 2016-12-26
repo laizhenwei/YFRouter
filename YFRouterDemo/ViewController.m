@@ -86,14 +86,14 @@ static const char *BlockSig(id blockObj);
 }
 
 - (IBAction)routerObject:(id)sender {
-    UIAlertController *alert = [YFRouter objectForRoute:self.routeObject.text params:nil];
+    UIAlertController *alert = [YFRouter objectForRoute:self.routeObject.text params:nil].value;
     if (alert) {
         [self presentViewController:alert animated:YES completion:nil];
     }
 }
 
 - (IBAction)alertObject:(id)sender {
-    UIAlertController *alert = [YFRouter objectForRoute:@"yf://alertObject" params:nil];
+    UIAlertController *alert = [YFRouter objectForRoute:@"yf://alertObject" params:nil].value;
     [self presentViewController:alert animated:YES completion:nil];
 }
 

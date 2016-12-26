@@ -8,6 +8,7 @@
 
 #import "YFRouter.h"
 #import "YFRouterWorker.h"
+#import <YFLog.h>
 
 #define YFWorkerInitURL(__ap__) \
 YFURL *routerUrl = [YFURL urlWithString:url params:__ap__]; \
@@ -113,7 +114,7 @@ static NSMutableDictionary *_routerWorkers;
     YFWorlerOperation(open, params)
 }
 
-+ (id)objectForRoute:(NSString *)url params:(NSDictionary *)params {
++ (YFObject *)objectForRoute:(NSString *)url params:(NSDictionary *)params {
     YFWorkerReturnOperation(object, params, nil)
 }
 
@@ -126,6 +127,9 @@ static NSMutableDictionary *_routerWorkers;
     [self route:url.absoluteString params:params];
 }
 
+@end
+
+@implementation YFObject
 @end
 
 #undef YFWorkerInitURL

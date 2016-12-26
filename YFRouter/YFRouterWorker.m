@@ -8,6 +8,7 @@
 
 #import "YFRouterWorker.h"
 #import <objc/runtime.h>
+#import <YFLog.h>
 
 @implementation YFURL
 
@@ -100,56 +101,35 @@ static BOOL shouldFallbackToLastHandler;
 }
 
 - (BOOL)canOpen:(YFURL *)url {
-    __block BOOL canOpen = NO;
-    [self searchRouterURL:url result:^(id handler, NSDictionary *params) {
-        if (handler) canOpen = YES;
-    }];
-    return canOpen;
+    YFObject *result = [self searchRouterURL:url];
+    return result.value != nil;
 }
 
 - (void)open:(YFURL *)url {
-    [self searchRouterURL:url result:^(YFRouterHandlerBlock handler, NSDictionary *params) {
-        if (object_isClass(handler)) return;
-        NSMutableDictionary *newParams = @{}.mutableCopy;
-        [newParams addEntriesFromDictionary:@{
-                                              YFRouterSchemeKey : self.scheme,
-                                              YFRouterPathKey   : url.path,
-                                              YFRouterURLKey    : url.urlString
-                                              }];
-        if (handler) {
-            [newParams addEntriesFromDictionary:params];
-            [newParams addEntriesFromDictionary:url.params];
-            handler(newParams);
-        } else if (uncaughtHandler) {
-            uncaughtHandler(newParams);
-        } else {
-            YFFlagError(YES, YFRouterDomain, @"Handler For URL: %@ Not Found", url.urlString);
-        }
-    }];
+    YFObject *result = [self searchRouterURL:url];
+    NSMutableDictionary *newParams = [self paramsFromResult:result URL:url];
+    if (result.value) {
+        ((YFRouterHandlerBlock)result.value)(newParams);
+    } else if (uncaughtHandler) {
+        uncaughtHandler(newParams);
+    } else {
+        YFFlagError(YES, YFRouterDomain, @"Handler For URL: %@ Not Found", url.urlString);
+    }
 }
 
-- (id)object:(YFURL *)url {
-    __block id object;
-    [self searchRouterURL:url result:^(id handler, NSDictionary *params) {
-        if (handler) {
-            static YFRouterObjectHandlerBlock block = ^id(NSDictionary *params) {return nil;};
-            if (![handler isKindOfClass:NSClassFromString(@"NSBlock")] || (BlockSigal(block) != BlockSigal(handler))) {
-                object = handler;
-                return;
-            }
-            NSMutableDictionary *newParams = @{}.mutableCopy;
-            [newParams addEntriesFromDictionary:@{
-                                                  YFRouterSchemeKey : self.scheme,
-                                                  YFRouterPathKey   : url.path,
-                                                  YFRouterURLKey    : url.urlString
-                                                  }];
-            [newParams addEntriesFromDictionary:params];
-            [newParams addEntriesFromDictionary:url.params];
-            object = ((YFRouterObjectHandlerBlock)handler)(newParams);
-        } else {
-            YFFlagError(YES, YFRouterDomain, @"Object Handler Not Found");
+- (YFObject *)object:(YFURL *)url {
+    YFObject *result = [self searchRouterURL:url];
+    YFObject *object = [[YFObject alloc] init];
+    if (result.value) {
+        static YFRouterObjectHandlerBlock block = ^id(NSDictionary *params) {return nil;};
+        object.value = result.value;
+        object.params = [[self paramsFromResult:result URL:url] copy];
+        if ([result.value isKindOfClass:NSClassFromString(@"NSBlock")] && BlockSigal(block) == BlockSigal(result.value)) {
+            object.value = ((YFRouterObjectHandlerBlock)result.value)(object.params);
         }
-    }];
+    } else {
+        YFFlagError(YES, YFRouterDomain, @"Object Not Found");
+    }
     return object;
 }
 
@@ -166,41 +146,50 @@ static BOOL shouldFallbackToLastHandler;
     return routers;
 }
 
-- (void)searchRouterURL:(YFURL *)url result:(void (^)(id, NSDictionary *))result {
+- (NSMutableDictionary *)paramsFromResult:(YFObject *)result URL:(YFURL *)url {
+    NSMutableDictionary *newParams = @{}.mutableCopy;
+    [newParams addEntriesFromDictionary:@{
+                                          YFRouterSchemeKey : self.scheme,
+                                          YFRouterPathKey   : url.path,
+                                          YFRouterURLKey    : url.urlString
+                                          }];
+    [newParams addEntriesFromDictionary:result.params];
+    [newParams addEntriesFromDictionary:url.params];
+    return newParams;
+}
+
+- (YFObject *)searchRouterURL:(YFURL *)url {
+    #define YFHandleNotFound \
+    { if (shouldFallbackToLastHandler) break; \
+    object.params = params.copy; \
+    return object; }
+    
     NSMutableDictionary *routers = [self.routers copy];
     NSMutableDictionary *params = @{}.mutableCopy;
     
-    // 是否允许上一个路径节点的 Handler 处理 URL
-    #define YFHandleNotFound \
-    { if (shouldFallbackToLastHandler) break; \
-    if (result) result(nil, params); \
-    result = nil; \
-    return; }
-    
+    YFObject *object = [[YFObject alloc] init];
     for (NSString *path in url.pathComponents) {
-        // 找不到该节点
         if (routers.count <= 0) YFHandleNotFound;
         // 优先匹配给定路径
         if (routers[path]) {
             routers = routers[path];
             continue;
         }
-        // 获取所有模糊匹配
         NSArray *fuzzyKeys = [routers.allKeys filteredArrayUsingPredicate:self.predicate];
-        // 找不到模糊匹配
         if (fuzzyKeys.count <= 0) YFHandleNotFound;
+        
         // 同一节点出现多个匹配
-        if (fuzzyKeys.count > 1) { // 报警告
+        if (fuzzyKeys.count > 1) {
             YFFlagWarning(YES, YFRouterDomain, @"There Are More Than One FuzzyKeys %@", routers.allKeys);
         }
-        // 默认匹配（随机）
         NSString *key = fuzzyKeys[0];
         params[[key substringFromIndex:1]] = path;
         routers = routers[key];
     }
-    if (result) result(routers[YFRouterWorkerObjectKey], params);
-    result = nil;
-    
+    object.value = routers[YFRouterWorkerObjectKey];
+    object.params = params.copy;
+    return object;
+
     #undef YFHandleNotFound
 }
 

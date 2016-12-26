@@ -7,7 +7,6 @@
 //
 
 #import "YFRouter.h"
-#import <YFLog/YFLog.h>
 
 @interface YFURL : NSObject
 
@@ -35,6 +34,6 @@
 
 - (void)open:(YFURL *)url;
 
-- (id)object:(YFURL *)url;
+- (YFObject *)object:(YFURL *)url;
 
 @end
